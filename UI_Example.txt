@@ -1,0 +1,38 @@
+------------------------ MAIN MENU
+
+_Music Player App_
+
+1) #playlist a
+2) #playlist b
+3) #playlist c
+
+c) New Playlist
+x) Exit
+
+----------------------------- PLAYLIST MENU
+
+playlist a                            (JUST PRESS SPACE TO PAUSE / PLAY SONG)
+
+1) Song 1 - 3:45
+2) Song 2 - 5:33   PLAYING
+3) Song 3 - 2:13
+4) Song 4 - 7:45
+
+a) New Song
+d) Remove Song
+s) skip current song
+r) rename playlist
+t) toggle shuffle (ON)
+e) Main Menu
+
+PLAYING: Land Down Under
+2:34 / 4:33
+
+■■■■■■□□□□□□□□
+
+--------------------------------- ADD SONG MENU
+
+Add song to playlist PLAYLIST NAME
+
+Youtube Link: youtube.com/2646272435
+Name: Land Down Under

@@ -37,8 +37,11 @@ def playlist():
 def new_playlist():
     os.system('cls')
     new_playlist_name = [input("Name Of the playlist: ")]
-    playlists = open(".\Music\Setting.txt")
-    playlists.write(new_playlist_name)
+    file = open(".\Music\{}.txt".format(new_playlist_name))
+    with open(file, "w") as txt_file:
+        for line in new_playlist_name:
+            txt_file.write(" ".join(line) + "\n")
+
 
 def new_song():
     os.system('cls')

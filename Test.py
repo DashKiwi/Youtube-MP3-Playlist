@@ -1,14 +1,32 @@
-data = [['panel'], ['panel2']]
-file = ".\Music\output.txt"
+import json
 
-with open(file, "w") as txt_file:
-    for line in data:
-        txt_file.write(" ".join(line) + "\n")
+playlists = {
+    "Playlist 1": {
+        "Song": "Some song",
+        "Song2": "Some other song",
+        "Song 4": "Some different song"
+    }
+}
 
-data = []
-with open(file, "r") as txt_file:
-    file_lines = txt_file.readlines()
-    for line in range(len(file_lines)):
-        data.append(file_lines[line])
+# Adds the playlist to the json file
+save_file = open(r".\Music\test.json", "w")
+json.dump(playlists, save_file, indent=6)  
+save_file.close()
 
-print(data)
+# Gets read access to the json file 
+save_file = open(r".\Music\test.json", "r")
+data = json.load(save_file)
+
+# Can list out all the objects inside a sepecific class
+for j in data["Playlist 1"]:
+    print(data["Playlist 1"][j])
+
+# Chooses the location
+data["Playlist 1"]["Song3"] = "Some Other Other Song"
+
+# gains write access to the json file
+save_file = open(r".\Music\test.json", "w") 
+# adds the new data to the save file
+json.dump(data, save_file)
+# closes the save file to save
+save_file.close()

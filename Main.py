@@ -14,19 +14,19 @@ playlist = ""
 def playlist_delete_menu():
     global playlist
     os.system('cls||clear')
-    print("Which Playlist would you like to delete?\n\n")
-    save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "r")
-    data = json.load(save_file)
-    save_file.close()
-    num = 0
-    for playlists_json in data:
-        num += 1
-        print("{}) {}".format(num, playlists_json))
-    if num == 0:
-        os.system('cls||clear')
-        print("You have no playlists. Create a new one in the menu below\n")
-        return
     while True:
+        print("Which Playlist would you like to delete?\n\n")
+        save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "r")
+        data = json.load(save_file)
+        save_file.close()
+        num = 0
+        for playlists_json in data:
+            num += 1
+            print("{}) {}".format(num, playlists_json))
+        if num == 0:
+            os.system('cls||clear')
+            print("You have no playlists. Create a new one in the menu below\n")
+            return
         choice = input("\nEnter a number corrosponding to a playlist or type x to go back to main menu\n").capitalize()
         try:
             choice = eval(choice)
@@ -35,7 +35,7 @@ def playlist_delete_menu():
                 data = dict(json.load(save_file))
                 save_file.close()
                 itterations = 0
-                for playlists_json in data:
+                for playlists_json in data.copy():
                     itterations += 1
                     if itterations == int(choice):
                         playlist = playlists_json
@@ -43,8 +43,8 @@ def playlist_delete_menu():
                         save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "w")
                         json.dump(data, save_file, indent=6)
                         save_file.close()
-                        if os.path.exists(r".\Music\{}".format(playlist)):
-                            shutil.rmtree(r".\Music\{}".format(playlist))
+                        if os.path.exists(os.path.join(os.getcwd(), "Music", f"{playlist}")):
+                            shutil.rmtree(os.path.join(os.getcwd(), "Music", f"{playlist}"))
                         main_menu()
                 raise
         except:
@@ -56,25 +56,25 @@ def playlist_delete_menu():
 def song_delete_menu():
     global playlist
     os.system('cls||clear')
-    print("Which song would you like to delete from {}\n".format(playlist))
-    # Saves the Playlist.json data to a variable called data
-    save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "r")
-    data = json.load(save_file)
-    save_file.close()
-    num = 0
-    # Checks how many keys are under playlist then prints the songs
-    for songs_json in data[playlist]:
-        if num != 0:
-            print("{}) ".format(num) + data[playlist][songs_json])
-        num += 1
-    # if the num var is only at 1 then it detects there is no songs
-    if num == 1:
-        os.system('cls||clear')
-        print("There is no songs in this playlist. Add more songs from the playlist menu below\n")
-        # stops the rest from running
-        return
     while True:
-        choice = input("\nEnter a number corrosponding to a song or type x to go back to main menu\n").capitalize()
+        print("Which song would you like to delete from {}\n".format(playlist))
+        # Saves the Playlist.json data to a variable called data
+        save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "r")
+        data = json.load(save_file)
+        save_file.close()
+        num = 0
+        # Checks how many keys are under playlist then prints the songs
+        for songs_json in data[playlist]:
+            if num != 0:
+                print("{}) ".format(num) + data[playlist][songs_json])
+            num += 1
+        # if the num var is only at 1 then it detects there is no songs
+        if num == 1:
+            os.system('cls||clear')
+            print("There is no songs in this playlist. Add more songs from the playlist menu below\n")
+            # stops the rest from running
+            return
+        choice = input("\nEnter a number corrosponding to a song or type e to go back to main menu\n").capitalize()
         try:
             # attempts to set the variable from input into a int then checks if it is
             choice = eval(choice)
@@ -85,28 +85,35 @@ def song_delete_menu():
                 save_file.close()
                 itterations = 0
                 # itterates through everything in the playlist inside the json file
-                for songs in data[playlist]:
-                    if itterations == int(choice):
+                for songs in data[playlist].copy():
+                    if itterations == int(choice) and int(choice) != 0:
                         # If the music files path exists, delete it
-                        if os.path.isdir(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{data[playlist][songs]}.mp3")):
+                        if os.path.isfile(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{data[playlist][songs]}.mp3")):
                             os.remove(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{data[playlist][songs]}.mp3"))
                         # deletes the music infomation from the data variable
-                        del data[playlist]["song {}".format(itterations)]
-                        data[playlist]["song_count"] -= 1
-                        # Saves the data dictionary to the json file
-                        save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "w")
-                        json.dump(data, save_file, indent=6)
-                        save_file.close()
-                        os.system('cls||clear')
+                        something = 0
+                        for i in data[playlist].copy():
+                            if itterations == something:
+                                data[playlist].pop(i)
+                                data[playlist]["song_count"] -= 1
+                                print("After Song Count")
+                                # Saves the data dictionary to the json file
+                                save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "w")
+                                json.dump(data, save_file, indent=6)
+                                save_file.close()
+                                os.system('cls||clear')
+                                return
+                            something += 1
                         # stops the rest of the function from running and causing it too return to the playlist menu
-                        return
                     itterations += 1
-                raise
+                os.system('cls||clear')
+                print("Please enter a vaild option\n")
         # if it cannot run the code then this code runs
         except:
-            if choice == "X":
+            if choice == "E":
                 return
             else:
+                os.system('cls||clear')
                 print("Please enter a vaild option")
 
 
@@ -150,7 +157,7 @@ def new_song():
             name = input("\nSong Name (Leave Blank for video name): ") or yt.title
             if name == "E" or name == "e":
                 playlist_menu()
-            if not os.path.isdir(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{name}")):
+            if not os.path.isfile(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{name}.mp3")):
                 yt.title = name
                 video = yt.streams.get_audio_only()
                 video.download(mp3=True, output_path=os.path.join(os.getcwd(), "Music", f"{playlist}")) # pass the parameter mp3=True to save in .mp3
@@ -158,7 +165,12 @@ def new_song():
                 data = dict(json.load(save_file))
                 save_file.close()
                 data[playlist]["song_count"] += 1
-                data[playlist]["song {}".format(data[playlist]["song_count"])] = yt.title
+                song_count = 1
+                while True:
+                    if not "song {}".format(song_count) in data[playlist]:
+                        data[playlist]["song {}".format(song_count)] = yt.title
+                        break
+                    song_count += 1
                 save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "w")
                 json.dump(data, save_file, indent=6)
                 save_file.close()
@@ -273,7 +285,7 @@ def main_menu():
                 elif choice == "D":
                     playlist_delete_menu()
                 elif choice == "X":
-                    os.close
+                    exit()
                 else:
                     print("Please enter a valid option")
 

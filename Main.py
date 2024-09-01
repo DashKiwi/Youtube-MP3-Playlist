@@ -3,6 +3,7 @@ import os, shutil
 import simpleaudio
 import json
 import threading
+import time
 from pathlib import Path
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
@@ -28,7 +29,7 @@ def playlist_delete_menu():
             os.system('cls||clear')
             print("You have no playlists. Create a new one in the menu below\n")
             return
-        choice = input("\nEnter a number corrosponding to a playlist or type x to go back to main menu\n").capitalize()
+        choice = input("\nEnter a number corrosponding to a playlist or type e to go back to main menu\n").capitalize()
         try:
             choice = eval(choice)
             if isinstance(choice, int):
@@ -50,7 +51,7 @@ def playlist_delete_menu():
                         return
                 raise
         except:
-            if choice == "X":
+            if choice == "E":
                 return
             else:
                 print("Please enter a valid option")
@@ -118,12 +119,14 @@ def song_delete_menu():
                 os.system('cls||clear')
                 print("Please enter a vaild option")
 
-
 def new_playlist():
     global playlist
     os.system('cls||clear')
     while True:
-        playlist = input("Name Of the playlist: ")
+        playlist = str(input("Enter E to exit\nName Of the playlist: ").capitalize())
+        if playlist == "E":
+            os.system('cls||clear')
+            return
         # checks if the playlist path already exists, if it doesnt it creates a new folder for the playlist
         if not os.path.isdir(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")):
             os.makedirs(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}"))
@@ -181,6 +184,7 @@ def new_song():
                 while True:
                     choice = input("{} Has been successfully downloaded. Type E to return to playlist menu or A to download another song: \n".format(yt.title)).capitalize()
                     if choice == "E":
+                        os.system('cls||clear')
                         return
                     elif choice == "A":
                         new_song()
@@ -221,9 +225,7 @@ def play_music(data, choice):
                 if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
                     music_path = AudioSegment.from_file(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
                     music = playback._play_with_simpleaudio(music_path)
-                    print("Before Wait")
                     music.wait_done()
-                    print("After Wait")
                 else:
                     print("The song's file does not exist or is corrupted. Please delete it from the playlist menu and redownload it")
             n += 1
@@ -232,7 +234,7 @@ def play_music(data, choice):
         choice += 1
 
 def playlist_menu():
-    global playlist, music_thread, song_continue
+    global playlist, song_continue
     os.system('cls||clear')
     while True:
         print("{}\n".format(playlist))
@@ -255,6 +257,7 @@ def playlist_menu():
                 save_file.close()
                 simpleaudio.stop_all()
                 song_continue = False
+                time.sleep(0.1)
                 music_thread = threading.Thread(target= play_music, args= (data, choice))
                 music_thread.start()
                 os.system('cls||clear')
@@ -295,7 +298,6 @@ def main_menu():
                     n = 0
                     for playlist_json in data:
                         n += 1
-                        print(choice)
                         if n == int(choice):
                             playlist = playlist_json
                     playlist_menu()

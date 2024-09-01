@@ -2,13 +2,13 @@
 import os, shutil
 import simpleaudio
 import json
+import threading
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from pydub import AudioSegment, playback
-from pydub.playback import play
-
 # Global Variables
 playlist = ""
+song_continue = True
 # Functions
 
 def playlist_delete_menu():
@@ -207,8 +207,28 @@ def playlist_rename():
         else:
             print("An unknown error has occured. The playlist save file may be corrupt\nPlease submit an issue on github")
 
+def play_music(data, choice):
+    global playlist, song_continue
+    song_continue = True
+    while song_continue == True:
+        n = 0
+        for songs_json in data[playlist]:
+            if n == int(choice):
+                if os.path.isfile(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
+                    music_path = AudioSegment.from_file(os.path.join(os.getcwd(), "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
+                    music = playback._play_with_simpleaudio(music_path)
+                    print("Before Wait")
+                    music.wait_done()
+                    print("After Wait")
+                else:
+                    print("The song's file does not exist or is corrupted. Please delete it from the playlist menu and redownload it")
+            n += 1
+        if choice == len(data[playlist].keys()):
+            choice = 0
+        choice += 1
+
 def playlist_menu():
-    global playlist
+    global playlist, music_thread, song_continue
     os.system('cls||clear')
     while True:
         print("{}\n".format(playlist))
@@ -229,14 +249,11 @@ def playlist_menu():
                 save_file = open(os.path.join(os.getcwd(), "Music", "Playlists.json"), "r")
                 data = dict(json.load(save_file))
                 save_file.close()
-                n = 0
-                for songs_json in data[playlist]:
-                    if n == int(choice):
-                        song_name = data[playlist][songs_json]
-                        # add the code to play the music here
-                        os.system('cls||clear')
-                        playlist_menu()
-                    n += 1
+                simpleaudio.stop_all()
+                song_continue = False
+                music_thread = threading.Thread(target= play_music, args= (data, choice))
+                music_thread.start()
+                os.system('cls||clear')
         except:
             if choice == "A":
                 new_song()

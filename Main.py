@@ -273,7 +273,8 @@ def playlist_menu():
             elif choice == "T":
                 print("ADD TOGGLE SHUFFLING")
             elif choice == "E":
-                main_menu()
+            	os.system('cls||clear')
+            	return
 
 def main_menu():
         global playlist
@@ -301,14 +302,13 @@ def main_menu():
                         if n == int(choice):
                             playlist = playlist_json
                     playlist_menu()
-                    break
             except:
                 if choice == "C":
                     new_playlist()
                 elif choice == "D":
                     playlist_delete_menu()
                 elif choice == "X":
-                    exit()
+                    return
                 else:
                     print("Please enter a valid option")
 

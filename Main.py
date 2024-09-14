@@ -3,14 +3,18 @@ import os, shutil
 import simpleaudio
 import json
 import threading
-import time
+import random
 from pathlib import Path
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from pydub import AudioSegment, playback
 # Global Variables
+choice = ""
 playlist = ""
-song_continue = True
+song_continue = False
+playing = False
+current_song = ""
+shuffling = False
 # Functions
 
 def playlist_delete_menu():
@@ -215,32 +219,47 @@ def playlist_rename():
         else:
             print("An unknown error has occured. The playlist save file may be corrupt\nPlease submit an issue on github")
 
-def play_music(data, choice):
-    global playlist, song_continue
-    song_continue = True
-    while song_continue == True:
-        n = 0
-        for songs_json in data[playlist]:
-            if n == int(choice):
-                if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
-                    music_path = AudioSegment.from_file(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
-                    music = playback._play_with_simpleaudio(music_path)
-                    music.wait_done()
-                else:
-                    print("The song's file does not exist or is corrupted. Please delete it from the playlist menu and redownload it")
-            n += 1
-        if choice == len(data[playlist].keys()):
-            choice = 0
-        choice += 1
+def play_music():
+    global playlist, song_continue, current_song, playing, choice, shuffling
+    while True:
+        if "music" in locals():
+            if not music.is_playing():
+                playing = False
+        while not playing and song_continue == True:
+            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+            data = json.load(save_file)
+            save_file.close()
+            n = 0
+            for songs_json in data[playlist]:
+                if n == int(choice):
+                    if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
+                        current_song_path = AudioSegment.from_file(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
+                    else:
+                        print("The song's file does not exist or is corrupted. Please delete it from the playlist menu and redownload it")
+                n += 1
+                if choice >= len(data[playlist].keys()):
+                    choice = 0
+                    n = 0
+            if shuffling == False:
+                choice += 1
+            else:
+                choice = random.randint(1, len(data[playlist].keys()))
+            try:
+                simpleaudio.stop_all()
+                music = playback._play_with_simpleaudio(current_song_path)
+            except:
+                print("An unknown error has occured.")
+            playing = True
+
 
 def playlist_menu():
-    global playlist, song_continue
+    global playlist, song_continue, choice, shuffling, playing
     os.system('cls||clear')
     while True:
         print("{}\n".format(playlist))
         # Opens the save file and saves the data to a data variable
         save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
-        data = json.load(save_file)
+        data = dict(json.load(save_file))
         save_file.close()
         # Displays all the songs in the playlist
         num = 0
@@ -248,33 +267,37 @@ def playlist_menu():
             if num != 0:
                 print("{}) ".format(num) + data[playlist][songs_json])
             num += 1
-        choice = input("\na) New Song\nd) Remove Song\ns) skip current song\nr) rename playlist\nt) toggle shuffle (ON)\ne) Main Menu\n").capitalize()
+        choice = input(f"\na) New Song\nd) Remove Song\ns) skip current song\nr) rename playlist\nt) toggle shuffle ({shuffling})\ne) Main Menu\n").capitalize()
         try:
             choice = eval(choice)
             if isinstance(choice, int):
-                save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
-                data = dict(json.load(save_file))
-                save_file.close()
-                simpleaudio.stop_all()
-                song_continue = False
-                time.sleep(0.1)
-                music_thread = threading.Thread(target= play_music, args= (data, choice))
-                music_thread.start()
-                os.system('cls||clear')
+                os.system("cls||clear")
+                song_continue = True
         except:
+            song_continue = False
             if choice == "A":
                 new_song()
             elif choice == "D":
                 song_delete_menu()
             elif choice == "S":
-                print("ADD SKIPPING SONGS!")
+                simpleaudio.stop_all()
+                choice += 1
+                playing = False
+                song_continue = True
             elif choice == "R":
                 playlist_rename()
             elif choice == "T":
-                print("ADD TOGGLE SHUFFLING")
+                if shuffling == True:
+                    shuffling = False
+                else:
+                    shuffling = True
+                os.system("cls||clear")
             elif choice == "E":
-            	os.system('cls||clear')
-            	return
+                os.system('cls||clear')
+                return
+            else:
+                os.system("cls||clear")
+        simpleaudio.stop_all()
 
 def main_menu():
         global playlist
@@ -314,4 +337,6 @@ def main_menu():
 
 # Main Process
 os.system('cls||clear')
+music_player = threading.Thread(target=play_music, args=())
+music_player.start()
 main_menu()

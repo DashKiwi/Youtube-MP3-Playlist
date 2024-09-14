@@ -4,17 +4,18 @@ import simpleaudio
 import json
 import threading
 import random
-from pathlib import Path
+import time
+from pathlib import Path 
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from pydub import AudioSegment, playback
 # Global Variables
-choice = ""
+choice = 1
 playlist = ""
 song_continue = False
 playing = False
-current_song = ""
 shuffling = False
+pause = False
 # Functions
 
 def playlist_delete_menu():
@@ -220,11 +221,26 @@ def playlist_rename():
             print("An unknown error has occured. The playlist save file may be corrupt\nPlease submit an issue on github")
 
 def play_music():
-    global playlist, song_continue, current_song, playing, choice, shuffling
+    global playlist, song_continue, playing, choice, shuffling, pause
+    playback_state = ""
     while True:
+        if pause == True:
+            if playback_state == "Playing":
+                simpleaudio.stop_all()
+                end_timestamp = time.time()
+                current_timestamp = int(1000 * (end_timestamp - start_timestamp))
+                playback_state = "Paused"
+            elif playback_state == "Paused":
+                slice = current_song_path[current_timestamp:]
+                raw_data = slice.raw_data
+                music = simpleaudio.play_buffer(raw_data, num_channels=slice.channels, bytes_per_sample=slice.sample_width, sample_rate=slice.frame_rate)
+                start_timestamp = time.time()
+                playback_state = "Playing"
+            pause = False
         if "music" in locals():
-            if not music.is_playing():
+            if not music.is_playing() and playback_state == "Playing":
                 playing = False
+                playback_state = "Stopped"
         while not playing and song_continue == True:
             save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
             data = json.load(save_file)
@@ -247,13 +263,16 @@ def play_music():
             try:
                 simpleaudio.stop_all()
                 music = playback._play_with_simpleaudio(current_song_path)
+                pause = False
+                playback_state = "Playing"
+                start_timestamp = time.time()
             except:
                 print("An unknown error has occured.")
             playing = True
 
 
 def playlist_menu():
-    global playlist, song_continue, choice, shuffling, playing
+    global playlist, song_continue, choice, shuffling, playing, pause
     os.system('cls||clear')
     while True:
         print("{}\n".format(playlist))
@@ -267,32 +286,37 @@ def playlist_menu():
             if num != 0:
                 print("{}) ".format(num) + data[playlist][songs_json])
             num += 1
-        choice = input(f"\na) New Song\nd) Remove Song\ns) skip current song\nr) rename playlist\nt) toggle shuffle ({shuffling})\ne) Main Menu\n").capitalize()
+        option = input(f"\np) Pause Song\na) New Song\nd) Remove Song\ns) skip current song\nr) rename playlist\nt) toggle shuffle ({shuffling})\ne) Main Menu\n").capitalize()
         try:
-            choice = eval(choice)
-            if isinstance(choice, int):
+            option = eval(option)
+            if isinstance(option, int):
                 os.system("cls||clear")
+                choice = option
                 song_continue = True
         except:
             song_continue = False
-            if choice == "A":
+            if option == "P":
+                os.system("cls||clear")
+                pause = True
+            elif option == "A":
                 new_song()
-            elif choice == "D":
+            elif option == "D":
                 song_delete_menu()
-            elif choice == "S":
+            elif option == "S":
                 simpleaudio.stop_all()
                 choice += 1
                 playing = False
                 song_continue = True
-            elif choice == "R":
+                os.system("cls||clear")
+            elif option == "R":
                 playlist_rename()
-            elif choice == "T":
+            elif option == "T":
                 if shuffling == True:
                     shuffling = False
                 else:
                     shuffling = True
                 os.system("cls||clear")
-            elif choice == "E":
+            elif option == "E":
                 os.system('cls||clear')
                 return
             else:

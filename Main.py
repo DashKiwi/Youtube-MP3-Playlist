@@ -5,6 +5,7 @@ import json
 import threading
 import random
 import time
+import keyboard
 from pathlib import Path 
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
@@ -128,8 +129,8 @@ def new_playlist():
     global playlist
     os.system('cls||clear')
     while True:
-        playlist = str(input("Enter E to exit\nName Of the playlist: ").capitalize())
-        if playlist == "E":
+        playlist = str(input("Enter E to exit\nName Of the playlist: "))
+        if playlist.capitalize() == "E":
             os.system('cls||clear')
             return
         # checks if the playlist path already exists, if it doesnt it creates a new folder for the playlist
@@ -151,6 +152,7 @@ def new_playlist():
             json.dump(data, save_file, indent=6)
             save_file.close()
             playlist_menu()
+            break
         else:
             print("A Playlist with this name already exists\n")
     
@@ -172,6 +174,7 @@ def new_song():
             if not os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{name}.mp3")):
                 yt.title = name
                 video = yt.streams.get_audio_only()
+                print("Downloading ...")
                 video.download(mp3=True, output_path=os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")) # pass the parameter mp3=True to save in .mp3
                 save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
                 data = dict(json.load(save_file))
@@ -193,6 +196,7 @@ def new_song():
                         return
                     elif choice == "A":
                         new_song()
+                        return
             else:
                 print("A song with this name already exists\n")
         except:
@@ -223,12 +227,13 @@ def playlist_rename():
 def play_music():
     global playlist, song_continue, playing, choice, shuffling, pause
     playback_state = ""
+    current_timestamp = 0
     while True:
         if pause == True:
             if playback_state == "Playing":
                 simpleaudio.stop_all()
                 end_timestamp = time.time()
-                current_timestamp = int(1000 * (end_timestamp - start_timestamp))
+                current_timestamp += int(1000 * (end_timestamp - start_timestamp))
                 playback_state = "Paused"
             elif playback_state == "Paused":
                 slice = current_song_path[current_timestamp:]
@@ -249,6 +254,7 @@ def play_music():
             for songs_json in data[playlist]:
                 if n == int(choice):
                     if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
+                        previous_choice = choice
                         current_song_path = AudioSegment.from_file(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
                     else:
                         print("The song's file does not exist or is corrupted. Please delete it from the playlist menu and redownload it")
@@ -259,17 +265,46 @@ def play_music():
             if shuffling == False:
                 choice += 1
             else:
-                choice = random.randint(1, len(data[playlist].keys()))
+                while True:
+                    choice = random.randint(1, len(data[playlist].keys()))
+                    if previous_choice == 0:
+                        previous_choice = 1
+                    if previous_choice != choice:
+                        break
             try:
                 simpleaudio.stop_all()
                 music = playback._play_with_simpleaudio(current_song_path)
                 pause = False
                 playback_state = "Playing"
                 start_timestamp = time.time()
+                current_timestamp = 0
             except:
                 print("An unknown error has occured.")
             playing = True
 
+def update_shuffling(get_set):
+    global shuffling
+    save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "r")
+    data = dict(json.load(save_file))
+    save_file.close()
+    if get_set == "set":
+        for shuffe in data:
+            if shuffe == "shuffling":
+                if data["shuffling"] == True:
+                    data["shuffling"] = False
+                    shuffling = False
+                elif data["shuffling"] == False:
+                    data["shuffling"] = True
+                    shuffling = True
+        if not "shuffling" in data:
+            shuffle_add = {"shuffling": False}
+            data.update(shuffle_add)
+        save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "w")
+        json.dump(data, save_file, indent=6)
+        save_file.close()
+    elif get_set == "get":
+        shuffling = data["shuffling"]
+    
 
 def playlist_menu():
     global playlist, song_continue, choice, shuffling, playing, pause
@@ -286,7 +321,7 @@ def playlist_menu():
             if num != 0:
                 print("{}) ".format(num) + data[playlist][songs_json])
             num += 1
-        option = input(f"\np) Pause Song\na) New Song\nd) Remove Song\ns) skip current song\nr) rename playlist\nt) toggle shuffle ({shuffling})\ne) Main Menu\n").capitalize()
+        option = input(f"\np) Pause Song\ns) skip current song\na) New Song\nd) Remove Song\nr) rename playlist\nt) toggle shuffle ({shuffling})\ne) Main Menu\n").capitalize()
         try:
             option = eval(option)
             if isinstance(option, int):
@@ -298,23 +333,20 @@ def playlist_menu():
             if option == "P":
                 os.system("cls||clear")
                 pause = True
-            elif option == "A":
-                new_song()
-            elif option == "D":
-                song_delete_menu()
             elif option == "S":
                 simpleaudio.stop_all()
                 choice += 1
                 playing = False
                 song_continue = True
                 os.system("cls||clear")
+            elif option == "A":
+                new_song()
+            elif option == "D":
+                song_delete_menu()
             elif option == "R":
                 playlist_rename()
             elif option == "T":
-                if shuffling == True:
-                    shuffling = False
-                else:
-                    shuffling = True
+                update_shuffling("set")
                 os.system("cls||clear")
             elif option == "E":
                 os.system('cls||clear')
@@ -363,4 +395,5 @@ def main_menu():
 os.system('cls||clear')
 music_player = threading.Thread(target=play_music, args=())
 music_player.start()
+update_shuffling("get")
 main_menu()

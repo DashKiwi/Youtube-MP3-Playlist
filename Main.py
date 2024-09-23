@@ -28,9 +28,11 @@ def playlist_delete_menu():
         data = json.load(save_file)
         save_file.close()
         num = 0
+        # prints all the playlists
         for playlists_json in data:
             num += 1
             print("{}) {}".format(num, playlists_json))
+        # after a loop through data it checks if there is any playlists
         if num == 0:
             os.system('cls||clear')
             print("You have no playlists. Create a new one in the menu below\n")
@@ -43,6 +45,7 @@ def playlist_delete_menu():
                 data = dict(json.load(save_file))
                 save_file.close()
                 itterations = 0
+                # checks if the chosen playlist exists then deletes it if it is
                 for playlists_json in data.copy():
                     itterations += 1
                     if itterations == int(choice):
@@ -162,16 +165,20 @@ def new_song():
     print("Add song to {}\n".format(playlist))
     while True:
         try:
+            # Asks for inputs and gets handles the errorcase
             vid_link = str(input("\nEnter E to exit\nYoutube Link: "))
-            if vid_link == "E" or vid_link == "e":
+            if vid_link.capitalize() == "E":
                 os.system('cls||clear')
                 return
+            # Gets the youtube link prepaired
             yt = YouTube(vid_link, on_progress_callback=on_progress)
             name = input("\nSong Name (Leave Blank for video name): ") or yt.title
             if name == "E" or name == "e":
                 os.system('cls||clear')
                 return
+            # checks if the path of the selected song with name exits
             if not os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{name}.mp3")):
+                # begins downloading of the youtube video
                 yt.title = name
                 video = yt.streams.get_audio_only()
                 print("Downloading ...")
@@ -179,13 +186,8 @@ def new_song():
                 save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
                 data = dict(json.load(save_file))
                 save_file.close()
+                # adds one to the playlists song count
                 data[playlist]["song_count"] += 1
-                song_count = 1
-                while True:
-                    if not "song {}".format(song_count) in data[playlist]:
-                        data[playlist]["song {}".format(song_count)] = yt.title
-                        break
-                    song_count += 1
                 save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
                 json.dump(data, save_file, indent=6)
                 save_file.close()
@@ -208,15 +210,19 @@ def playlist_rename():
     print("What would you like to rename the playlist {} to?".format(playlist))
     while True:
         rename = input("\nNew Name: ")
+        # checks if the chosen playlist path exists
         if os.path.isdir(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")):
+            # renames the playlist path
             os.rename(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}"), os.path.join(Path(__file__).resolve().parent, "Music", f"{rename}"))
             save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
             data = json.load(save_file)
             save_file.close()
+            # changes the playlist name in the json file
             data["{}".format(rename)] = data.pop("{}".format(playlist))
             save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
             json.dump(data, save_file, indent=6)
             save_file.close()
+            # changes the global variable to go back to that playlist menu
             playlist = rename
             os.system('cls||clear')
             print("Playlist has been renamed\n")
@@ -230,6 +236,7 @@ def play_music():
     current_timestamp = 0
     while True:
         if pause == True:
+            # Pausing and playing system
             if playback_state == "Playing":
                 simpleaudio.stop_all()
                 end_timestamp = time.time()
@@ -242,15 +249,18 @@ def play_music():
                 start_timestamp = time.time()
                 playback_state = "Playing"
             pause = False
+        # Check if the music has stopped playing
         if "music" in locals():
             if not music.is_playing() and playback_state == "Playing":
                 playing = False
                 playback_state = "Stopped"
+        # Begin playing song
         while not playing and song_continue == True:
             save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
             data = json.load(save_file)
             save_file.close()
             n = 0
+            # gets the song by looping through the json file keys
             for songs_json in data[playlist]:
                 if n == int(choice):
                     if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
@@ -262,6 +272,7 @@ def play_music():
                 if choice >= len(data[playlist].keys()):
                     choice = 0
                     n = 0
+            # Playing the next song depending on shuffling mode
             if shuffling == False:
                 choice += 1
             else:
@@ -272,6 +283,7 @@ def play_music():
                     if previous_choice != choice:
                         break
             try:
+                # apart of the pausing menu
                 simpleaudio.stop_all()
                 music = playback._play_with_simpleaudio(current_song_path)
                 pause = False
@@ -287,21 +299,25 @@ def update_shuffling(get_set):
     save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "r")
     data = dict(json.load(save_file))
     save_file.close()
+    # sets the shuffling mode
     if get_set == "set":
         for shuffe in data:
             if shuffe == "shuffling":
+                # Changes the shuffling 
                 if data["shuffling"] == True:
                     data["shuffling"] = False
                     shuffling = False
                 elif data["shuffling"] == False:
                     data["shuffling"] = True
                     shuffling = True
+        # If shuffling isnt apart of the playlist then add it as false
         if not "shuffling" in data:
             shuffle_add = {"shuffling": False}
             data.update(shuffle_add)
         save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "w")
         json.dump(data, save_file, indent=6)
         save_file.close()
+    # Gets the shuffling mode
     elif get_set == "get":
         shuffling = data["shuffling"]
     
@@ -322,13 +338,16 @@ def playlist_menu():
                 print("{}) ".format(num) + data[playlist][songs_json])
             num += 1
         option = input(f"\np) Pause Song\ns) skip current song\na) New Song\nd) Remove Song\nr) rename playlist\nt) toggle shuffle ({shuffling})\ne) Main Menu\n").capitalize()
+        # Checks the users input
         try:
             option = eval(option)
             if isinstance(option, int):
                 os.system("cls||clear")
+                # Plays the song by starting the play_music() thread
                 choice = option
                 song_continue = True
         except:
+            # Checks if it is one of the options
             song_continue = False
             if option == "P":
                 os.system("cls||clear")
@@ -365,10 +384,12 @@ def main_menu():
             save_file.close()
             num = 0
             display = ""
+            # Prints all the playlists
             for playlist_json in data:
                 num += 1
                 display += "{}) {}\n".format(num, playlist_json)
             choice = input("{}\nc) New Playlist\nd) Delete Playlist\nX) Exit\n".format(display)).capitalize()
+            # Checks the users input
             try:
                 choice = eval(choice)
                 if isinstance(choice, int):
@@ -376,6 +397,7 @@ def main_menu():
                     data = dict(json.load(save_file))
                     save_file.close()
                     n = 0
+                    # Checks if the user input is the number in the json file. If yes set it to the playlist
                     for playlist_json in data:
                         n += 1
                         if n == int(choice):
@@ -393,6 +415,7 @@ def main_menu():
 
 # Main Process
 os.system('cls||clear')
+# Begins a thread for music
 music_player = threading.Thread(target=play_music, args=())
 music_player.start()
 update_shuffling("get")

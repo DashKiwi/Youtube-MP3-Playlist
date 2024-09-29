@@ -165,17 +165,20 @@ def new_song():
     print("Add song to {}\n".format(playlist))
     while True:
         try:
-            # Asks for inputs and gets handles the errorcase
-            vid_link = str(input("\nEnter E to exit\nYoutube Link: "))
-            if vid_link.capitalize() == "E":
-                os.system('cls||clear')
-                return
-            # Gets the youtube link prepaired
-            yt = YouTube(vid_link, on_progress_callback=on_progress)
-            name = input("\nSong Name (Leave Blank for video name): ") or yt.title
-            if name == "E" or name == "e":
-                os.system('cls||clear')
-                return
+            try:
+                # Asks for inputs and gets handles the errorcase
+                vid_link = str(input("\nEnter E to exit\nYoutube Link: "))
+                if vid_link.capitalize() == "E":
+                    os.system('cls||clear')
+                    return
+                # Gets the youtube link prepaired
+                yt = YouTube(vid_link, on_progress_callback=on_progress)
+                name = input("\nSong Name (Leave Blank for video name): ") or yt.title
+                if name == "E" or name == "e":
+                    os.system('cls||clear')
+                    return
+            except:
+                print("Error Please enter a vaild link or name")
             # checks if the path of the selected song with name exits
             if not os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{name}.mp3")):
                 # begins downloading of the youtube video
@@ -188,6 +191,12 @@ def new_song():
                 save_file.close()
                 # adds one to the playlists song count
                 data[playlist]["song_count"] += 1
+                song_count = 1
+                while True:
+                    if not "song {}".format(song_count) in data[playlist]:
+                        data[playlist]["song {}".format(song_count)] = yt.title
+                        break
+                    song_count += 1
                 save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
                 json.dump(data, save_file, indent=6)
                 save_file.close()
@@ -202,7 +211,7 @@ def new_song():
             else:
                 print("A song with this name already exists\n")
         except:
-            print("Error Please enter a vaild link or name")
+            print("An unknown error has occured. Please try again in a couple minutes")
 
 def playlist_rename():
     global playlist
@@ -413,10 +422,32 @@ def main_menu():
                 else:
                     print("Please enter a valid option")
 
+def keyboard_input():
+    global playing, pause
+    save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "r")
+    data = dict(json.load(save_file))
+    save_file.close()
+    if not "pause_button" in data:
+            pause_add = {"pause_button": ""}
+            data.update(pause_add)
+    pause_button = data["pause_button"]
+    save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "w")
+    json.dump(data, save_file, indent=6)
+    save_file.close()
+    if pause_button != "":
+        try:
+            while True:
+                keyboard.wait(pause_button)
+                if playing == True:
+                    pause = True
+        except:
+            print("The chosen keybind does not exist.\nPlease search up the python keyboard library keys to find possible keybinds\n")
+
+
 # Main Process
 os.system('cls||clear')
 # Begins a thread for music
-music_player = threading.Thread(target=play_music, args=())
-music_player.start()
+music_player = threading.Thread(target=play_music).start()
+key_input = threading.Thread(target=keyboard_input).start()
 update_shuffling("get")
 main_menu()

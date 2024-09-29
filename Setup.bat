@@ -5,8 +5,10 @@ if not "%1"=="am_admin" (
 )
 @echo on
 
+pip uninstall pytubefix -y
 pip install pytubefix
 pip install wheel
 pip install pydub
 pip install simpleaudio
+pip install keyboard
 Powershell.exe -executionpolicy remotesigned -File "%~dp0ffmpeg-requirements.ps1"

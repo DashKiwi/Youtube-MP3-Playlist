@@ -1,5 +1,6 @@
 # Imports
 import os, shutil
+import sys
 import simpleaudio
 import json
 import threading
@@ -17,14 +18,15 @@ song_continue = False
 playing = False
 shuffling = False
 pause = False
+application_path = "path"
 # Functions
 
 def playlist_delete_menu():
-    global playlist
+    global playlist, application_path
     os.system('cls||clear')
     while True:
         print("Which Playlist would you like to delete?\n\n")
-        save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+        save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
         data = json.load(save_file)
         save_file.close()
         num = 0
@@ -41,7 +43,7 @@ def playlist_delete_menu():
         try:
             choice = eval(choice)
             if isinstance(choice, int):
-                save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+                save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
                 data = dict(json.load(save_file))
                 save_file.close()
                 itterations = 0
@@ -51,11 +53,11 @@ def playlist_delete_menu():
                     if itterations == int(choice):
                         playlist = playlists_json
                         data.pop(playlist)
-                        save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
+                        save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "w")
                         json.dump(data, save_file, indent=6)
                         save_file.close()
-                        if os.path.exists(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")):
-                            shutil.rmtree(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}"))
+                        if os.path.exists(os.path.join(application_path, "Music", f"{playlist}")):
+                            shutil.rmtree(os.path.join(application_path, "Music", f"{playlist}"))
                         os.system('cls||clear')
                         return
                 raise
@@ -66,12 +68,12 @@ def playlist_delete_menu():
                 print("Please enter a valid option")
 
 def song_delete_menu():
-    global playlist
+    global playlist, application_path
     os.system('cls||clear')
     while True:
         print("Which song would you like to delete from {}\n".format(playlist))
         # Saves the Playlist.json data to a variable called data
-        save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+        save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
         data = json.load(save_file)
         save_file.close()
         num = 0
@@ -92,7 +94,7 @@ def song_delete_menu():
             choice = eval(choice)
             if isinstance(choice, int):
                 # Saves the Playlist.json data to a dictionary called data
-                save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+                save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
                 data = dict(json.load(save_file))
                 save_file.close()
                 itterations = 0
@@ -100,8 +102,8 @@ def song_delete_menu():
                 for songs in data[playlist].copy():
                     if itterations == int(choice) and int(choice) != 0:
                         # If the music files path exists, delete it
-                        if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs]}.mp3")):
-                            os.remove(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs]}.mp3"))
+                        if os.path.isfile(os.path.join(application_path, "Music", f"{playlist}", f"{data[playlist][songs]}.mp3")):
+                            os.remove(os.path.join(application_path, "Music", f"{playlist}", f"{data[playlist][songs]}.mp3"))
                         # deletes the music infomation from the data variable
                         something = 0
                         for i in data[playlist].copy():
@@ -110,7 +112,7 @@ def song_delete_menu():
                                 data[playlist]["song_count"] -= 1
                                 print("After Song Count")
                                 # Saves the data dictionary to the json file
-                                save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
+                                save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "w")
                                 json.dump(data, save_file, indent=6)
                                 save_file.close()
                                 os.system('cls||clear')
@@ -129,7 +131,7 @@ def song_delete_menu():
                 print("Please enter a vaild option")
 
 def new_playlist():
-    global playlist
+    global playlist, application_path
     os.system('cls||clear')
     while True:
         playlist = str(input("Enter E to exit\nName Of the playlist: "))
@@ -137,21 +139,21 @@ def new_playlist():
             os.system('cls||clear')
             return
         # checks if the playlist path already exists, if it doesnt it creates a new folder for the playlist
-        if not os.path.isdir(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")):
-            os.makedirs(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}"))
+        if not os.path.isdir(os.path.join(application_path, "Music", f"{playlist}")):
+            os.makedirs(os.path.join(application_path, "Music", f"{playlist}"))
             # adds the playlist to the json file
             new_playlist_name = {playlist: {
                 "song_count": 0
                 }
             }
             # reads the file and saves all the data to a variable
-            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+            save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
             data = dict(json.load(save_file))
             save_file.close()
             # adds the new playlist to the json file
             data.update(new_playlist_name)
             # Saves the data dictionary to the json file
-            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
+            save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "w")
             json.dump(data, save_file, indent=6)
             save_file.close()
             playlist_menu()
@@ -161,6 +163,7 @@ def new_playlist():
     
 
 def new_song():
+    global application_path
     os.system('cls||clear')
     print("Add song to {}\n".format(playlist))
     while True:
@@ -180,13 +183,13 @@ def new_song():
             except:
                 print("Error Please enter a vaild link or name")
             # checks if the path of the selected song with name exits
-            if not os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{name}.mp3")):
+            if not os.path.isfile(os.path.join(application_path, "Music", f"{playlist}", f"{name}.mp3")):
                 # begins downloading of the youtube video
                 yt.title = name
                 video = yt.streams.get_audio_only()
                 print("Downloading ...")
-                video.download(mp3=True, output_path=os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")) # pass the parameter mp3=True to save in .mp3
-                save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+                video.download(mp3=True, output_path=os.path.join(application_path, "Music", f"{playlist}")) # pass the parameter mp3=True to save in .mp3
+                save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
                 data = dict(json.load(save_file))
                 save_file.close()
                 # adds one to the playlists song count
@@ -197,7 +200,7 @@ def new_song():
                         data[playlist]["song {}".format(song_count)] = yt.title
                         break
                     song_count += 1
-                save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
+                save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "w")
                 json.dump(data, save_file, indent=6)
                 save_file.close()
                 while True:
@@ -214,21 +217,21 @@ def new_song():
             print("An unknown error has occured. Please try again in a couple minutes")
 
 def playlist_rename():
-    global playlist
+    global playlist, application_path
     os.system('cls||clear')
     print("What would you like to rename the playlist {} to?".format(playlist))
     while True:
         rename = input("\nNew Name: ")
         # checks if the chosen playlist path exists
-        if os.path.isdir(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}")):
+        if os.path.isdir(os.path.join(application_path, "Music", f"{playlist}")):
             # renames the playlist path
-            os.rename(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}"), os.path.join(Path(__file__).resolve().parent, "Music", f"{rename}"))
-            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+            os.rename(os.path.join(application_path, "Music", f"{playlist}"), os.path.join(application_path, "Music", f"{rename}"))
+            save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
             data = json.load(save_file)
             save_file.close()
             # changes the playlist name in the json file
             data["{}".format(rename)] = data.pop("{}".format(playlist))
-            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "w")
+            save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "w")
             json.dump(data, save_file, indent=6)
             save_file.close()
             # changes the global variable to go back to that playlist menu
@@ -240,7 +243,7 @@ def playlist_rename():
             print("An unknown error has occured. The playlist save file may be corrupt\nPlease submit an issue on github")
 
 def play_music():
-    global playlist, song_continue, playing, choice, shuffling, pause
+    global playlist, song_continue, playing, choice, shuffling, pause, application_path
     playback_state = ""
     current_timestamp = 0
     while True:
@@ -265,16 +268,16 @@ def play_music():
                 playback_state = "Stopped"
         # Begin playing song
         while not playing and song_continue == True:
-            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+            save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
             data = json.load(save_file)
             save_file.close()
             n = 0
             # gets the song by looping through the json file keys
             for songs_json in data[playlist]:
                 if n == int(choice):
-                    if os.path.isfile(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
+                    if os.path.isfile(os.path.join(application_path, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3")):
                         previous_choice = choice
-                        current_song_path = AudioSegment.from_file(os.path.join(Path(__file__).resolve().parent, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
+                        current_song_path = AudioSegment.from_file(os.path.join(application_path, "Music", f"{playlist}", f"{data[playlist][songs_json]}.mp3"))
                     else:
                         print("The song's file does not exist or is corrupted. Please delete it from the playlist menu and redownload it")
                 n += 1
@@ -304,8 +307,8 @@ def play_music():
             playing = True
 
 def update_shuffling(get_set):
-    global shuffling
-    save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "r")
+    global shuffling, application_path
+    save_file = open(os.path.join(application_path, "Settings.json"), "r")
     data = dict(json.load(save_file))
     save_file.close()
     # sets the shuffling mode
@@ -323,7 +326,7 @@ def update_shuffling(get_set):
         if not "shuffling" in data:
             shuffle_add = {"shuffling": False}
             data.update(shuffle_add)
-        save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "w")
+        save_file = open(os.path.join(application_path, "Settings.json"), "w")
         json.dump(data, save_file, indent=6)
         save_file.close()
     # Gets the shuffling mode
@@ -332,12 +335,12 @@ def update_shuffling(get_set):
     
 
 def playlist_menu():
-    global playlist, song_continue, choice, shuffling, playing, pause
+    global playlist, song_continue, choice, shuffling, playing, pause, application_path
     os.system('cls||clear')
     while True:
         print("{}\n".format(playlist))
         # Opens the save file and saves the data to a data variable
-        save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+        save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
         data = dict(json.load(save_file))
         save_file.close()
         # Displays all the songs in the playlist
@@ -384,11 +387,11 @@ def playlist_menu():
         simpleaudio.stop_all()
 
 def main_menu():
-        global playlist
+        global playlist, application_path
         os.system('cls||clear')
         while True:
             print("_Open Music App_\n")
-            save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+            save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
             data = json.load(save_file)
             save_file.close()
             num = 0
@@ -402,7 +405,7 @@ def main_menu():
             try:
                 choice = eval(choice)
                 if isinstance(choice, int):
-                    save_file = open(os.path.join(Path(__file__).resolve().parent, "Music", "Playlists.json"), "r")
+                    save_file = open(os.path.join(application_path, "Music", "Playlists.json"), "r")
                     data = dict(json.load(save_file))
                     save_file.close()
                     n = 0
@@ -422,16 +425,25 @@ def main_menu():
                 else:
                     print("Please enter a valid option")
 
+def set_path():
+    global application_path
+    if getattr(sys, 'frozen', False):
+        # Running as a packaged executable
+        application_path = os.path.dirname(sys.executable)
+    else:
+        # Running as a Python script
+        application_path = os.path.dirname(__file__)
+
 def keyboard_input():
-    global playing, pause
-    save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "r")
+    global playing, pause, application_path
+    save_file = open(os.path.join(application_path, "Settings.json"), "r")
     data = dict(json.load(save_file))
     save_file.close()
     if not "pause_button" in data:
             pause_add = {"pause_button": ""}
             data.update(pause_add)
     pause_button = data["pause_button"]
-    save_file = open(os.path.join(Path(__file__).resolve().parent, "Settings.json"), "w")
+    save_file = open(os.path.join(application_path, "Settings.json"), "w")
     json.dump(data, save_file, indent=6)
     save_file.close()
     if pause_button != "":
@@ -447,6 +459,7 @@ def keyboard_input():
 # Main Process
 os.system('cls||clear')
 # Begins a thread for music
+set_path()
 music_player = threading.Thread(target=play_music).start()
 key_input = threading.Thread(target=keyboard_input).start()
 update_shuffling("get")

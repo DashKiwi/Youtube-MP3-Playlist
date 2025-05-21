@@ -2,7 +2,6 @@ import os
 import threading
 from .player_controller import PlayerController
 from models.playlist import PlaylistModel
-from views.menu_view import MenuView
 from models.youtube_downloader import YouTubeDownloader
 
 class AppController:
@@ -10,7 +9,6 @@ class AppController:
         self.application_path = application_path
         self.playlist_model = PlaylistModel(application_path)
         self.player_controller = PlayerController(application_path)
-        self.menu_view = MenuView()
         self.youtube_downloader = YouTubeDownloader(application_path)
 
     def clear_screen(self):
